@@ -1,0 +1,13 @@
+{
+  "sheetId": "18Zf_XSU80j_I_VOp9Z4ShdOeUydR6Odyty-ExGBZaz4",
+  "sheetNames": ["Commons", "MyApp"],
+  "output_dir": "test/src/strings",
+  "languages": {
+    "fr": {
+      "column": "D"
+    },
+    "en": {
+      "column": "C"
+    }
+  }
+}

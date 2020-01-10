@@ -1,0 +1,35 @@
+{
+  "name": "wording-tool",
+  "version": "1.0.0",
+  "description": "Provide tool to retrieve App Wording from Google Sheet and process it to generate i18n json files",
+  "main": "./lib/index.js",
+  "bin": {
+    "upgrade-wording": "./lib/index.js"
+  },
+  "scripts": {
+    "startUpgradeWording": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts --upgrade",
+    "create": "npm run build && npm run test",
+    "build": "tsc -p .",
+    "test": "sudo npm i -g && upgrade-wording",
+    "refresh": "rm -rf ./node_modules ./package-lock.json && npm install"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^3.0.0",
+    "clear": "^0.1.0",
+    "commander": "^4.0.1",
+    "figlet": "^1.2.4",
+    "googleapis": "^39.2.0",
+    "path": "^0.12.7",
+    "xlsx": "^0.15.3"
+  },
+  "devDependencies": {
+    "@types/clear": "^0.1.0",
+    "@types/figlet": "^1.2.0",
+    "@types/node": "^12.12.14",
+    "nodemon": "^2.0.1",
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.2"
+  }
+}
