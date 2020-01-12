@@ -1,5 +1,5 @@
 {
-  "name": "wording-tool",
+  "name": "@betomorrow/wording-tool",
   "version": "1.0.0",
   "description": "Provide tool to retrieve App Wording from Google Sheet and process it to generate i18n json files",
   "main": "./lib/index.js",
