@@ -32,6 +32,7 @@ And create wording config file named `wording_config.json` at project root locat
     }
   }
 }
+```
 
 Add scripts line to invoke tools easily with npm in `package.json`
 ```json
