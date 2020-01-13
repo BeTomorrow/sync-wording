@@ -10,14 +10,7 @@ import { WordingLoader } from "./WordingLoader";
 import { WordingExporter } from "./WordingExporter";
 import { loadConfiguration } from "./config/WordingConfigLoader";
 
-clear();
-console.log(
-  chalk.grey(
-    figlet.textSync("sync-wording", {
-      horizontalLayout: "full"
-    })
-  )
-);
+console.log("Running sync wording");
 
 program
   .version("1.0.0")
