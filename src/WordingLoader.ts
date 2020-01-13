@@ -51,12 +51,12 @@ export class WordingLoader {
   ): Entry | undefined {
     const key = sheet[`A${rowIndex}`];
     const value = sheet[`${column}${rowIndex}`];
-    if (key === undefined || value === undefined) {
+    if (key === undefined) {
       return undefined;
     }
     return {
       key: key.v,
-      value: value.v
+      value: value.v ? value.v : ""
     };
   }
 }
