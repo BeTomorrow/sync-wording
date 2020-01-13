@@ -2,21 +2,19 @@
   "name": "@betomorrow/sync-wording",
   "version": "1.0.5",
   "description": "Provide tool to retrieve app wording from Google Sheet and process it to generate i18n json files",
-  "main": "./lib/index.js",
+  "main": "lib/index.js",
   "bin": {
-    "sync-wording": "./lib/index.js"
+    "sync-wording": "lib/index.js"
   },
   "scripts": {
-    "startUpgradeWording": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts --upgrade",
-    "create": "npm run build && npm run test",
+    "watch": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts --upgrade",
     "build": "tsc -p .",
-    "test": "npm i -g && sync-wording",
     "installPackage": "npm run build && npm i -g",
     "refresh": "rm -rf ./node_modules ./package-lock.json && npm install"
   },
   "author": "Olivier Gauthier",
   "homepage": "https://github.com/BeTomorrow/sync-wording",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "chalk": "^3.0.0",
     "clear": "^0.1.0",
@@ -34,5 +32,8 @@
     "nodemon": "^2.0.1",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.2"
-  }
+  },
+  "files": [
+    "lib/"
+  ]
 }
