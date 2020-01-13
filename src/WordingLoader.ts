@@ -56,7 +56,7 @@ export class WordingLoader {
     }
     return {
       key: key.v,
-      value: value.v ? value.v : ""
+      value: value ? value.v : ""
     };
   }
 }
