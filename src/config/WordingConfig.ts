@@ -37,11 +37,7 @@ export class WordingConfig {
       "./wording.xlsx"
     );
 
-    this.credentials = this.getOrDefault(
-      jsonConfig,
-      "credentials",
-      "./.google_credentials.json"
-    );
+    this.credentials = this.getOrDefault(jsonConfig, "credentials", "");
 
     this.sheetId = jsonConfig.sheetId;
     this.sheetNames = jsonConfig.sheetNames;

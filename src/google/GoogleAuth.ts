@@ -4,6 +4,7 @@ import { google } from "googleapis";
 import { OAuth2Client, Credentials } from "google-auth-library";
 import chalk from "chalk";
 import open from "open";
+import { defaultCredentials } from "./DefaultCredentials";
 
 const TOKEN_PATH = ".google_access_token.json";
 
@@ -34,14 +35,18 @@ export class GoogleAuth {
 
   async loadCredentials(path: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      fs.readFile(path, (err, content) => {
-        if (err) {
-          console.log("Error loading client secret file:", err);
-          reject(err);
-        } else {
-          resolve(JSON.parse(content.toString()));
-        }
-      });
+      if (path && path.length > 0) {
+        fs.readFile(path, (err, content) => {
+          if (err) {
+            console.log("Error loading client secret file:", err);
+            reject(err);
+          } else {
+            resolve(JSON.parse(content.toString()));
+          }
+        });
+      } else {
+        resolve(defaultCredentials);
+      }
     });
   }
 

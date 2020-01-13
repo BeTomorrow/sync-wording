@@ -2,3 +2,4 @@ node_modules
 .google_access_token.json
 wording.xlsx
 test
+lib
