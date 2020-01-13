@@ -2,6 +2,8 @@ import fs from "fs";
 import readline from "readline";
 import { google } from "googleapis";
 import { OAuth2Client, Credentials } from "google-auth-library";
+import chalk from "chalk";
+import open from "open";
 
 const TOKEN_PATH = ".google_access_token.json";
 
@@ -52,7 +54,12 @@ export class GoogleAuth {
         access_type: "offline",
         scope: scopes
       });
-      console.log("Authorize this app by visiting this url:", authUrl);
+
+      console.log(
+        "Authorize this app by visiting this url:",
+        chalk.green(authUrl)
+      );
+      open(authUrl);
       const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout

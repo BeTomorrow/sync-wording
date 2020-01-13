@@ -9,7 +9,6 @@ export function loadConfiguration(configPath: string): Promise<WordingConfig> {
         resolve(undefined);
       } else {
         const result = new WordingConfig(JSON.parse(config.toString()));
-        console.log(result);
         resolve(result);
       }
     });
