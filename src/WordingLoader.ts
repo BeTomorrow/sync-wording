@@ -7,13 +7,19 @@ interface Entry {
 
 export class WordingLoader {
   private workbook: WorkBook;
+  private sheetNames: string[];
 
   constructor(
     inputPath: string,
-    private readonly sheetNames: string[],
+    sheetNames: string[],
     private readonly startIndex: number
   ) {
     this.workbook = xlsx.readFile(inputPath);
+    if (sheetNames && sheetNames.length > 0) {
+      this.sheetNames = sheetNames;
+    } else {
+      this.sheetNames = this.workbook.SheetNames;
+    }
   }
 
   loadWording(column: string): Map<string, string> {
