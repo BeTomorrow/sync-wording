@@ -14,12 +14,14 @@ You can find a sample sheet [here](https://docs.google.com/spreadsheets/d/18Zf_X
 Install sync-wording as dev dependencies
 
 ```bash
+
     npm install @betomorrow/sync-wording --save-dev
+
 ```
 
 And create wording config file named `wording_config.json` at project root location.
 
-````json
+```json
 {
   "sheetId": "18Zf_XSU80j_I_VOp9Z4ShdOeUydR6Odyty-ExGBZaz4",
   "output_dir": "src/assets/strings/",
@@ -34,16 +36,15 @@ And create wording config file named `wording_config.json` at project root locat
 }
 ```
 
-
 Add scripts line to invoke tools easily with npm in `package.json`
 
 ```json
 {
   "scripts": {
-    "upgrade-wording": "sync-wording --upgrade",
+    "upgrade-wording": "sync-wording --upgrade"
   }
 }
-````
+```
 
 Then run `npm run upgrade-wording`
 
@@ -72,20 +73,20 @@ This tools support 3 options
 
 ## Complete Configuration
 
-```txt
+```json
 {
-  "credentials": "credentials.json",  // Optional, json google api service credentials, default : use embedded credentials
-  "wording_file": "wording.xlsx",     // Optional, local xlsx wording file path
+  "credentials": "credentials.json", // Optional, json google api service credentials, default : use embedded credentials
+  "wording_file": "wording.xlsx", // Optional, local xlsx wording file path
 
-  "sheetId": "THE SHEET ID",          // *Required*
-  "shhetNames": ["commons", "app"],   // Optional, default: use all sheets
-  "sheetStartIndex": 2,               // Optional, start row index, default : 2
-  "keyColumn": "A",                   // Optional, default : "A"
+  "sheetId": "THE SHEET ID", // *Required*
+  "shhetNames": ["commons", "app"], // Optional, default: use all sheets
+  "sheetStartIndex": 2, // Optional, start row index, default : 2
+  "keyColumn": "A", // Optional, default : "A"
 
   "output_dir": "src/assets/strings/",
   "languages": {
     "en": {
-      "output": "src/assets/strings/default.json",  // Optional, default: "${output_dir}/${language_name}.json"
+      "output": "src/assets/strings/default.json", // Optional, default: "${output_dir}/${language_name}.json"
       "column": "B"
     },
     "fr": {
