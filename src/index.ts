@@ -1,14 +1,11 @@
 #!/usr/bin/env node
 
-import chalk from "chalk";
-import clear from "clear";
-import figlet from "figlet";
 import program from "commander";
-import { GoogleAuth } from "./google/GoogleAuth";
-import { Drive } from "./google/Drive";
-import { WordingLoader } from "./WordingLoader";
-import { WordingExporter } from "./WordingExporter";
 import { loadConfiguration } from "./config/WordingConfigLoader";
+import { Drive } from "./google/Drive";
+import { GoogleAuth } from "./google/GoogleAuth";
+import { WordingExporter } from "./WordingExporter";
+import { WordingLoader } from "./WordingLoader";
 
 console.log("Running sync wording");
 
