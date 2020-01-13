@@ -36,7 +36,7 @@ And create wording config file named `wording_config.json` at project root locat
 }
 ```
 
-Add scripts line to invoke tools easily with npm in `package.json`
+Add scripts lines to invoke tools easily with npm in `package.json`
 
 ```json
 {
@@ -46,7 +46,11 @@ Add scripts line to invoke tools easily with npm in `package.json`
 }
 ```
 
-Then run `npm run upgrade-wording`
+Then run
+
+```bash
+  npm run upgrade-wording
+```
 
 It will ask you to grant access on Google Sheet
 
@@ -61,7 +65,7 @@ Copy / Paste url in your browser, accept authorization and close browser
 
 [Authorization Sample]
 
-It will update wording files. In this sample, `${output_dir}/en.json` and `${output_dir}/fr.json`
+It will update wording files : `${output_dir}/en.json` and `${output_dir}/fr.json`
 
 ## Options
 
