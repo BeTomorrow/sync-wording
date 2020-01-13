@@ -41,15 +41,15 @@ console.log(
 );
 
 loadConfiguration(program.config).then(async config => {
-  // const auth = await new GoogleAuth().authorize(config.credentials, [
-  //   "https://www.googleapis.com/auth/drive.readonly"
-  // ]);
+  const auth = await new GoogleAuth().authorize(config.credentials, [
+    "https://www.googleapis.com/auth/drive.readonly"
+  ]);
 
-  // await new Drive(auth).exportAsXlsx(
-  //   config.sheetId,
-  //   config.wording_file,
-  //   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-  // );
+  await new Drive(auth).exportAsXlsx(
+    config.sheetId,
+    config.wording_file,
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
 
   const loader = new WordingLoader(
     config.wording_file,
