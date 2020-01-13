@@ -1,7 +1,7 @@
 {
-  "name": "@betomorrow/wording-tool",
+  "name": "@betomorrow/sync-wording",
   "version": "1.0.0",
-  "description": "Provide tool to retrieve App Wording from Google Sheet and process it to generate i18n json files",
+  "description": "Provide tool to retrieve app wording from Google Sheet and process it to generate i18n json files",
   "main": "./lib/index.js",
   "bin": {
     "upgrade-wording": "./lib/index.js"
@@ -13,7 +13,8 @@
     "test": "sudo npm i -g && upgrade-wording",
     "refresh": "rm -rf ./node_modules ./package-lock.json && npm install"
   },
-  "author": "",
+  "author": "Olivier Gauthier",
+  "homepage": "https://github.com/BeTomorrow/sync-wording",
   "license": "ISC",
   "dependencies": {
     "chalk": "^3.0.0",
