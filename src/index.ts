@@ -10,7 +10,7 @@ import { WordingLoader } from "./WordingLoader";
 console.log("Running sync wording");
 
 program
-  .version("1.0.8")
+  .version("1.0.9")
   .description("Upgrade application wording from Google Sheet")
   .option("--config <config>", "wording config path", "wording_config.json")
   .option("--upgrade", "upgrade wording from remote Google Sheet")
