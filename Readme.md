@@ -34,7 +34,9 @@ And create wording config file named `wording_config.json` at project root locat
 }
 ```
 
+
 Add scripts line to invoke tools easily with npm in `package.json`
+
 ```json
 {
   "scripts": {
@@ -70,20 +72,20 @@ This tools support 3 options
 
 ## Complete Configuration
 
-```json
+```txt
 {
-  "credentials": "credentials.json", // Optional, json google api service credentials, default : use embedded credentials
-  "wording_file": "wording.xlsx", // Optional, local xlsx wording file path
+  "credentials": "credentials.json",  // Optional, json google api service credentials, default : use embedded credentials
+  "wording_file": "wording.xlsx",     // Optional, local xlsx wording file path
 
-  "sheetId": "THE SHEET ID", // *Required*
-  "shhetNames": ["commons", "app"], // Optional, default: use all sheets
-  "sheetStartIndex": 2, // Optional, start row index, default : 2
-  "keyColumn": "A", // Optional, default : "A"
+  "sheetId": "THE SHEET ID",          // *Required*
+  "shhetNames": ["commons", "app"],   // Optional, default: use all sheets
+  "sheetStartIndex": 2,               // Optional, start row index, default : 2
+  "keyColumn": "A",                   // Optional, default : "A"
 
   "output_dir": "src/assets/strings/",
   "languages": {
     "en": {
-      "output": "src/assets/strings/default.json", // Optional, default: "${output_dir}/${language_name}.json"
+      "output": "src/assets/strings/default.json",  // Optional, default: "${output_dir}/${language_name}.json"
       "column": "B"
     },
     "fr": {
