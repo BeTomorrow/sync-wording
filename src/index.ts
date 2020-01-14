@@ -7,12 +7,9 @@ import { GoogleAuth } from "./google/GoogleAuth";
 import { WordingExporter } from "./WordingExporter";
 import { WordingLoader } from "./WordingLoader";
 
-import { version } from "../package.json";
-
 console.log("Running sync wording");
 
 program
-  .version(version)
   .description("Upgrade application wording from Google Sheet")
   .option("--config <config>", "wording config path", "wording_config.json")
   .option("--upgrade", "upgrade wording from remote Google Sheet")
