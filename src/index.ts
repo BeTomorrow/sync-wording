@@ -4,7 +4,8 @@ import program from "commander";
 import { loadConfiguration } from "./config/WordingConfigLoader";
 import { Drive } from "./google/Drive";
 import { GoogleAuth } from "./google/GoogleAuth";
-import { WordingExporter } from "./WordingExporter";
+import { SimpleJsonWordingExporter } from "./exporters/SimpleJsonWordingExporter";
+import { AngularJsonWordingExporter } from "./exporters/AngularJsonWordingExporter";
 import { WordingLoader } from "./WordingLoader";
 
 console.log("Running sync wording");
@@ -47,11 +48,11 @@ loadConfiguration(program.config).then(async config => {
       config.sheetStartIndex
     );
 
-    const exporter = new WordingExporter();
+    const exporter = config.format == "angular-json" ? new AngularJsonWordingExporter() : new SimpleJsonWordingExporter();
 
     config.languages.forEach(language => {
       const wording = loader.loadWording(language.column);
-      exporter.export(wording, language.output);
+      exporter.export(language.name, wording, language.output);
     });
   }
 });

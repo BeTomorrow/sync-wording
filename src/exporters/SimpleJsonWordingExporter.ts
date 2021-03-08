@@ -1,8 +1,10 @@
 import fs from "fs";
 import path from "path";
+import { WordingExporter } from "./WordingExporter";
 
-export class WordingExporter {
+export class SimpleJsonWordingExporter implements WordingExporter {
   async export(
+    locale: string,
     wording: Map<string, string>,
     outputFile: string
   ): Promise<void> {
@@ -32,9 +34,9 @@ export class WordingExporter {
   }
 
   writeFile(wording: any, output: string) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       fs.mkdirSync(path.dirname(output), { recursive: true });
-      fs.writeFile(output, JSON.stringify(wording, null, 2), err => {
+      fs.writeFile(output, JSON.stringify(wording, null, 2), (err) => {
         if (err) {
           reject(err);
         } else {

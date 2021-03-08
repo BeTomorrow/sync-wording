@@ -1,8 +1,10 @@
 export class LanguageConfig {
+  name: string;
   column: string;
   output: string;
 
   constructor(name: string, config: any, defaultOutputDir: string) {
+    this.name = name;
     this.column = config.column;
     if (config.output) {
       this.output = config.output;
@@ -19,7 +21,6 @@ export class LanguageConfig {
     }
   }
 }
-
 export class WordingConfig {
   wording_file: string;
   credentials: string;
@@ -29,6 +30,7 @@ export class WordingConfig {
   keyColumn: string;
   output_dir: string;
   languages: LanguageConfig[];
+  format: string;
 
   constructor(jsonConfig: any) {
     this.wording_file = this.getOrDefault(
@@ -53,6 +55,8 @@ export class WordingConfig {
     );
 
     this.languages = [];
+
+    this.format = this.getOrDefault(jsonConfig, "format", "json")
 
     for (const language in jsonConfig.languages) {
       if (jsonConfig.languages.hasOwnProperty(language)) {
