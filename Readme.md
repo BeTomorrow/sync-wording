@@ -86,6 +86,7 @@ This tools support 3 options
   "shhetNames": ["commons", "app"],       // Optional, default: use all sheets
   "sheetStartIndex": 2,                   // Optional, start row index, default : 2
   "keyColumn": "A",                       // Optional, default : "A"
+  "format" : "json",                      // Optional, json output format (json|angular-json), default: "json", 
 
   "output_dir": "src/assets/strings/",
   "languages": {
