@@ -27,7 +27,7 @@ if (!process.argv.slice(2).length) {
 function getExporter(format: String) : WordingExporter {
   if (format === "angular-json") {
     return new AngularJsonWordingExporter()
-  } else if (format == "flat-json") {
+  } else if (format === "flat-json") {
     return new FlatJsonWordingExporter();
   }
   return new NestedJsonWordingExporter();
