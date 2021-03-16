@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { WordingExporter } from "./WordingExporter";
 
-export class AngularJsonWordingExporter implements WordingExporter {
+export class FlatJsonWordingExporter implements WordingExporter {
   async export(
     locale: String,
     wording: Map<string, string>,
@@ -12,11 +12,7 @@ export class AngularJsonWordingExporter implements WordingExporter {
     wording.forEach((v, k) => {
       translations[k] = v;
     });
-    const result: any = {
-      locale: locale,
-      translations: translations,
-    };
-    await this.writeFile(result, outputFile);
+    await this.writeFile(translations, outputFile);
   }
 
   writeFile(wording: any, output: string) {

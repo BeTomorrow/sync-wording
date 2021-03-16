@@ -4,9 +4,11 @@ import program from "commander";
 import { loadConfiguration } from "./config/WordingConfigLoader";
 import { Drive } from "./google/Drive";
 import { GoogleAuth } from "./google/GoogleAuth";
-import { SimpleJsonWordingExporter } from "./exporters/SimpleJsonWordingExporter";
+import { FlatJsonWordingExporter } from "./exporters/FlatJsonWordingExportter";
+import { NestedJsonWordingExporter } from "./exporters/NestedJsonWordingExporter";
 import { AngularJsonWordingExporter } from "./exporters/AngularJsonWordingExporter";
 import { WordingLoader } from "./WordingLoader";
+import { WordingExporter } from "./exporters/WordingExporter";
 
 console.log("Running sync wording");
 
@@ -20,6 +22,15 @@ program
 
 if (!process.argv.slice(2).length) {
   program.outputHelp();
+}
+
+function getExporter(format: String) : WordingExporter {
+  if (format === "angular-json") {
+    return new AngularJsonWordingExporter()
+  } else if (format == "flat-json") {
+    return new FlatJsonWordingExporter();
+  }
+  return new NestedJsonWordingExporter();
 }
 
 loadConfiguration(program.config).then(async config => {
@@ -48,7 +59,7 @@ loadConfiguration(program.config).then(async config => {
       config.sheetStartIndex
     );
 
-    const exporter = config.format == "angular-json" ? new AngularJsonWordingExporter() : new SimpleJsonWordingExporter();
+    const exporter = getExporter(config.format);
 
     config.languages.forEach(language => {
       const wording = loader.loadWording(language.column);
@@ -56,3 +67,5 @@ loadConfiguration(program.config).then(async config => {
     });
   }
 });
+
+

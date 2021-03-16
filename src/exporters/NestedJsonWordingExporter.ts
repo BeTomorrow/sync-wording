@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { WordingExporter } from "./WordingExporter";
 
-export class SimpleJsonWordingExporter implements WordingExporter {
+export class NestedJsonWordingExporter implements WordingExporter {
   async export(
     locale: string,
     wording: Map<string, string>,
