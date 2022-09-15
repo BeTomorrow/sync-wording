@@ -63,6 +63,15 @@ loadConfiguration(program.config).then(async config => {
 
     config.languages.forEach(language => {
       const wording = loader.loadWording(language.column);
+
+      if (config.ignoreEmptyKeys) {
+        wording.forEach((key, value) => {
+          if (value.length == 0) {
+            wording.delete(key);
+          }
+        });
+      }
+
       exporter.export(language.name, wording, language.output);
     });
   }

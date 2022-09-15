@@ -21,6 +21,7 @@ export class LanguageConfig {
     }
   }
 }
+
 export class WordingConfig {
   wording_file: string;
   credentials: string;
@@ -31,6 +32,7 @@ export class WordingConfig {
   output_dir: string;
   languages: LanguageConfig[];
   format: string;
+  ignoreEmptyKeys: boolean;
 
   constructor(jsonConfig: any) {
     this.wording_file = this.getOrDefault(
@@ -56,7 +58,9 @@ export class WordingConfig {
 
     this.languages = [];
 
-    this.format = this.getOrDefault(jsonConfig, "format", "json")
+    this.format = this.getOrDefault(jsonConfig, "format", "json");
+
+    this.ignoreEmptyKeys = this.getOrDefault(jsonConfig, "ignoreEmptyKeys", false);
 
     for (const language in jsonConfig.languages) {
       if (jsonConfig.languages.hasOwnProperty(language)) {
