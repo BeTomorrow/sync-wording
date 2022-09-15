@@ -1,6 +1,6 @@
 {
   "name": "@betomorrow/sync-wording",
-  "version": "1.1.4",
+  "version": "1.2.2",
   "description": "Provide tool to retrieve app wording from Google Sheet and process it to generate i18n json files",
   "main": "lib/index.js",
   "bin": {
@@ -10,7 +10,7 @@
     "access": "public"
   },
   "scripts": {
-    "watch": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts --upgrade",
+    "watch": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts --upgrade --invalid error",
     "build": "tsc -p .",
     "test": "npm run build",
     "installPackage": "npm run build && npm i -g",
@@ -22,6 +22,7 @@
   "dependencies": {
     "chalk": "^3.0.0",
     "clear": "^0.1.0",
+    "colors": "^1.4.0",
     "commander": "^4.0.1",
     "figlet": "^1.2.4",
     "googleapis": "^39.2.0",

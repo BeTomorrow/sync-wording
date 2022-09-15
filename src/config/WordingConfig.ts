@@ -1,9 +1,14 @@
+export interface Validation {
+  column : string;
+  expected: string;
+}
 export class LanguageConfig {
   name: string;
   column: string;
   output: string;
+  validation : Validation | null
 
-  constructor(name: string, config: any, defaultOutputDir: string) {
+  constructor(name: string, config: any, defaultOutputDir: string, validation : Validation | null) {
     this.name = name;
     this.column = config.column;
     if (config.output) {
@@ -11,6 +16,7 @@ export class LanguageConfig {
     } else {
       this.output = this.defaultOuput(defaultOutputDir, name);
     }
+    this.validation = config.validation || validation;
   }
 
   private defaultOuput(defaultOutputDir: string, name: string) {
@@ -33,6 +39,7 @@ export class WordingConfig {
   languages: LanguageConfig[];
   format: string;
   ignoreEmptyKeys: boolean;
+  validation : Validation | null;
 
   constructor(jsonConfig: any) {
     this.wording_file = this.getOrDefault(
@@ -62,14 +69,17 @@ export class WordingConfig {
 
     this.ignoreEmptyKeys = this.getOrDefault(jsonConfig, "ignoreEmptyKeys", false);
 
+    this.validation = this.getOrDefault(jsonConfig, "validation", null)
+
     for (const language in jsonConfig.languages) {
       if (jsonConfig.languages.hasOwnProperty(language)) {
         const element = jsonConfig.languages[language];
         this.languages.push(
-          new LanguageConfig(language, element, this.output_dir)
+          new LanguageConfig(language, element, this.output_dir, this.validation)
         );
       }
     }
+
   }
 
   private getOrDefault<T>(source: any, key: string, defaultValue: T): T {

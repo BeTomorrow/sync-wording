@@ -11,15 +11,11 @@ You can find a sample sheet [here](https://docs.google.com/spreadsheets/d/18Zf_X
 | user.firstname_title | Firstname | Prénom |
 | user.lastname_title  | Lastname  | Nom    |
 
-Install sync-wording as dev dependencies
 
-```bash
+## Integration to your project
 
-    npm install @betomorrow/sync-wording --save-dev
-
-```
-
-And create wording config file named `wording_config.json` at project root location.
+- Install sync-wording as dev dependencies ` npm install @betomorrow/sync-wording --save-dev`
+- Create wording config file named `wording_config.json` at project root location.
 
 ```json
 {
@@ -36,7 +32,7 @@ And create wording config file named `wording_config.json` at project root locat
 }
 ```
 
-Add scripts lines to invoke tools easily with npm in `package.json`
+- Add scripts lines to invoke tools easily with npm in `package.json`
 
 ```json
 {
@@ -46,11 +42,7 @@ Add scripts lines to invoke tools easily with npm in `package.json`
 }
 ```
 
-Then run
-
-```bash
-  npm run upgrade-wording
-```
+- Then run `npm run upgrade-wording`
 
 It will ask you to grant access on Google Sheet
 
@@ -61,11 +53,47 @@ Please open the following address in your browser:
 
 ```
 
-Copy / Paste url in your browser, accept authorization and close browser
+- Open url in your browser
+- Grant access
+- Copy code and paste it in your terminal
+
 
 [Authorization Sample]
 
 It will update wording files : `${output_dir}/en.json` and `${output_dir}/fr.json`
+
+## Wording validation
+
+In your google sheet, you can add column indicate that it's a valid translation
+
+| Keys                 | English   | French | Validation |
+| -------------------- | --------- | ------ |------------|
+| user.firstname_title | Firstname | Prénom | OK         |
+| user.lastname_title  | Lastname  | Nom    | KO         |
+
+Then update your configuration file like this
+
+```json
+{
+  "sheetId": "18Zf_XSU80j_I_VOp9Z4ShdOeUydR6Odyty-ExGBZaz4",
+  "output_dir": "src/assets/strings/",
+  "validation" : {
+    "column" : "D",
+    "expected" : "OK"
+  },
+  "languages": {
+    "en": {
+      "column": "B"
+    },
+    "fr": {
+      "column": "C"
+    }
+  }
+}
+```
+
+Now the tool will warn you when you update wording containing invalid translations
+
 
 ## Options
 
@@ -74,6 +102,7 @@ This tools support 3 options
 - **`--config`** : Configuration path
 - **`--upgrade`** : Export sheet in local xlsx file that you can commit for later edit. It prevent risks to have unwanted wording changes when you fix bugs. And then update wording
 - **`--update`** : Update wording files from local xlsx file
+- **`--invalid`** : (error|warning) exist with error when invalid translations found or just warn 
 
 ## Complete Configuration
 
@@ -88,12 +117,19 @@ This tools support 3 options
   "keyColumn": "A",                       // Optional, default : "A"
   "format" : "json",                      // Optional, json output format (json|flat-json|angular-json), default: "json"
   "ignoreEmptyKeys" : false               // Optional, whether or not empty keys should be kept, default: false
-
+  "validation" : {                        // Optional, global configuration to validate wording
+    "column" : "E"
+    "expected" : "OK"
+  }
   "output_dir": "src/assets/strings/",
   "languages": {
     "en": {
       "output": "src/assets/strings/default.json",  // Optional, default: "${output_dir}/${language_name}.json"
-      "column": "B"
+      "column": "B",
+      "validation" : {                        // Optional, local configuration to validate wording
+        "column" : "E"
+        "expected" : "OK"
+      }
     },
     "fr": {
       "output": "src/assets/strings/fr.json",
@@ -107,3 +143,26 @@ This tools support 3 options
 ## Note
 
 This tool includes Google Projet credentials for convenience use but you can setup your own projet. Create new project in [GCP Console](https://console.cloud.google.com) then enable **Drive API** in _API library_ and create and download credentials.
+
+
+## Development
+
+Current repository use this Sheet : https://docs.google.com/spreadsheets/d/18Zf_XSU80j_I_VOp9Z4ShdOeUydR6Odyty-ExGBZaz4/edit#gid=0
+
+Build and install locally
+```bash
+npm run build
+npm run installPackage
+```
+
+Run
+```bash
+rm  .google_* 
+sync-wording --upgrade
+```
+
+Publish
+```bash
+npm login
+npm publish
+```

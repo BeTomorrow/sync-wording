@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 
+import colors from 'colors/safe';
 import program from "commander";
 import { loadConfiguration } from "./config/WordingConfigLoader";
-import { Drive } from "./google/Drive";
-import { GoogleAuth } from "./google/GoogleAuth";
+import { AngularJsonWordingExporter } from "./exporters/AngularJsonWordingExporter";
 import { FlatJsonWordingExporter } from "./exporters/FlatJsonWordingExportter";
 import { NestedJsonWordingExporter } from "./exporters/NestedJsonWordingExporter";
-import { AngularJsonWordingExporter } from "./exporters/AngularJsonWordingExporter";
-import { WordingLoader } from "./WordingLoader";
 import { WordingExporter } from "./exporters/WordingExporter";
+import { Drive } from "./google/Drive";
+import { GoogleAuth } from "./google/GoogleAuth";
+import { WordingLoader, WordingResult } from "./WordingLoader";
 
 console.log("Running sync wording");
 
@@ -17,6 +18,7 @@ program
   .option("--config <config>", "wording config path", "wording_config.json")
   .option("--upgrade", "upgrade wording from remote Google Sheet")
   .option("--update", "update wording from local xlsx")
+  .option("--invalid <invalid>", "error|warning on invalid translation", "warning")
   .option("-v, --verbose", "show verbose logs")
   .parse(process.argv);
 
@@ -32,6 +34,15 @@ function getExporter(format: String) : WordingExporter {
   }
   return new NestedJsonWordingExporter();
 }
+
+function printReport(language: string, result : WordingResult) : void {
+  if (result.hasInvalidKeys) {
+    console.warn(colors.yellow(`Invalid translations found for language : ${language}`))
+    result.invalidKeys.forEach((k) =>
+      console.warn(colors.yellow(`\t"${k}"`))
+    )
+  }
+};
 
 loadConfiguration(program.config).then(async config => {
   if (program.verbose) {
@@ -53,27 +64,20 @@ loadConfiguration(program.config).then(async config => {
 
   if (program.upgrade || program.update) {
     console.log("Updating wording files");
-    const loader = new WordingLoader(
-      config.wording_file,
-      config.sheetNames,
-      config.sheetStartIndex
-    );
+    const loader = new WordingLoader(config);
 
     const exporter = getExporter(config.format);
-
+    let hasError = false
     config.languages.forEach(language => {
-      const wording = loader.loadWording(language.column);
-
-      if (config.ignoreEmptyKeys) {
-        wording.forEach((key, value) => {
-          if (value.length == 0) {
-            wording.delete(key);
-          }
-        });
-      }
-
-      exporter.export(language.name, wording, language.output);
+      const result = loader.loadWording(language, config.ignoreEmptyKeys);
+      exporter.export(language.name, result.wordings, language.output);
+      printReport(language.name, result)
+      hasError = hasError || result.hasInvalidKeys
     });
+
+    if (hasError && program.invalid === "error") {
+      process.exitCode = 1
+    }
   }
 });
 

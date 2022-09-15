@@ -3,6 +3,11 @@
   "sheetNames": ["Commons", "MyApp"],
   "output_dir": "test/src/strings",
   "format": "angular-json",
+  "ignoreEmptyKeys": true,
+  "validation" : {
+    "column" : "E",
+    "expected" : "OK"
+  },
   "languages": {
     "fr": {
       "column": "D"

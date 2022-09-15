@@ -6,7 +6,7 @@ export class AngularJsonWordingExporter implements WordingExporter {
   async export(
     locale: String,
     wording: Map<string, string>,
-    outputFile: string
+    outputFile: string,
   ): Promise<void> {
     const translations: any = {};
     wording.forEach((v, k) => {

@@ -6,7 +6,7 @@ export function loadConfiguration(configPath: string): Promise<WordingConfig> {
     fs.readFile(configPath, (err, config) => {
       if (err) {
         console.log("Can't read configuration", err);
-        resolve(undefined);
+        throw Error("Can't read configuration")
       } else {
         const result = new WordingConfig(JSON.parse(config.toString()));
         resolve(result);
