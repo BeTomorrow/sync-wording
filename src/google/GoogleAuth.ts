@@ -1,11 +1,12 @@
-import fs from "fs";
-import readline from "readline";
-import { google } from "googleapis";
-import { OAuth2Client, Credentials } from "google-auth-library";
 import chalk from "chalk";
-import open from "open";
-import { defaultCredentials } from "./DefaultCredentials";
+import fs from "fs";
 
+import { Credentials, OAuth2Client } from "google-auth-library";
+import http from "http";
+import open from "open";
+import url from "url";
+
+import { defaultCredentials } from "./DefaultCredentials";
 const TOKEN_PATH = ".google_access_token.json";
 
 export class GoogleAuth {
@@ -16,7 +17,7 @@ export class GoogleAuth {
     return new Promise(async (resolve, reject) => {
       const credentials = await this.loadCredentials(credentials_path);
       const { client_secret, client_id, redirect_uris } = credentials.installed;
-      const oAuth2Client = new google.auth.OAuth2(
+      const oAuth2Client = new OAuth2Client(
         client_id,
         client_secret,
         redirect_uris[0]
@@ -57,30 +58,17 @@ export class GoogleAuth {
     return new Promise((resolve, reject) => {
       const authUrl = oAuth2Client.generateAuthUrl({
         access_type: "offline",
-        scope: scopes
+        scope: scopes,
       });
+
+      this.createServer(oAuth2Client, resolve, reject);
 
       console.log(
         "Authorize this app by visiting this url:",
         chalk.green(authUrl)
       );
-      open(authUrl);
-      const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-      });
 
-      rl.question("Enter the code from that page here: ", code => {
-        rl.close();
-        oAuth2Client.getToken(code, (err, token) => {
-          if (err) {
-            console.error("Error retrieving access token", err);
-            reject(err);
-          } else {
-            resolve(token!);
-          }
-        });
-      });
+      open(authUrl);
     });
   }
 
@@ -98,7 +86,7 @@ export class GoogleAuth {
 
   private async writeToken(token: Credentials): Promise<void> {
     return new Promise((resolve, reject) => {
-      fs.writeFile(TOKEN_PATH, JSON.stringify(token), err => {
+      fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
         if (err) {
           reject(err);
         } else {
@@ -107,5 +95,35 @@ export class GoogleAuth {
         }
       });
     });
+  }
+
+  createServer(
+    oAuth2Client: OAuth2Client,
+    resolve: (value: Credentials | PromiseLike<Credentials>) => void,
+    reject: (reason?: any) => void
+  ) {
+    return http
+      .createServer(async function (req, res) {
+        if (req?.url?.startsWith("/oauth2callback")) {
+          const query = url.parse(req.url, true).query;
+          if (query.error) {
+            // An error response e.g. error=access_denied
+            reject("Error:" + query.error);
+          } else {
+            let code: string;
+            if (!Array.isArray(query.code)) {
+              code = query.code;
+            } else {
+              code = query.code[0] ?? "";
+            }
+            // Get access and refresh tokens (if access_type is offline)
+            let { tokens } = await oAuth2Client.getToken(code);
+            resolve(tokens);
+          }
+        }
+        res.end();
+        reject("No url mathching");
+      })
+      .listen(8181);
   }
 }

@@ -7,6 +7,6 @@ export const defaultCredentials = {
     token_uri: "https://oauth2.googleapis.com/token",
     auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
     client_secret: "bEK0Dy-9Y5doRvjfx_AtH0rS",
-    redirect_uris: ["urn:ietf:wg:oauth:2.0:oob", "http://localhost"]
-  }
+    redirect_uris: ["http://localhost:8181/oauth2callback"],
+  },
 };
