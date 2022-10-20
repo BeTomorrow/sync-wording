@@ -119,10 +119,12 @@ export class GoogleAuth {
             // Get access and refresh tokens (if access_type is offline)
             let { tokens } = await oAuth2Client.getToken(code);
             resolve(tokens);
+            res.end("successful authentification");
           }
+        } else {
+          reject("No url mathching");
+          res.end("authentification failed");
         }
-        res.end();
-        reject("No url mathching");
       })
       .listen(8181);
   }
