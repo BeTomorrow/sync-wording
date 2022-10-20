@@ -55,13 +55,41 @@ export class GoogleAuth {
     oAuth2Client: OAuth2Client,
     scopes: string[]
   ): Promise<Credentials> {
-    return new Promise((resolve, reject) => {
+    const server = http.createServer();
+
+    const token = await new Promise<Credentials>((resolve, reject) => {
       const authUrl = oAuth2Client.generateAuthUrl({
         access_type: "offline",
         scope: scopes,
       });
 
-      this.createServer(oAuth2Client, resolve, reject);
+      server.on("request", async (req, res) => {
+        if (req?.url?.startsWith("/oauth2callback")) {
+          const query = url.parse(req.url, true).query;
+          if (query.error) {
+            // An error response e.g. error=access_denied
+            reject("Error:" + query.error);
+            req.destroy();
+          } else {
+            let code: string;
+            if (!Array.isArray(query.code)) {
+              code = query.code;
+            } else {
+              code = query.code[0] ?? "";
+            }
+            // Get access and refresh tokens (if access_type is offline)
+            let { tokens } = await oAuth2Client.getToken(code);
+            resolve(tokens);
+            res.end("successful authentification");
+            req.destroy();
+          }
+        } else {
+          reject("No url mathching");
+          res.end("authentification failed");
+          req.destroy();
+        }
+      });
+      server.listen(8181);
 
       console.log(
         "Authorize this app by visiting this url:",
@@ -70,6 +98,8 @@ export class GoogleAuth {
 
       open(authUrl);
     });
+    server.close();
+    return token;
   }
 
   private async readToken(): Promise<Credentials | undefined> {
