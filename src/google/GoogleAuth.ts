@@ -72,7 +72,7 @@ export class GoogleAuth {
     });
   }
 
-  private async readToken(): Promise<Credentials> {
+  private async readToken(): Promise<Credentials | undefined> {
     return new Promise((resolve, reject) => {
       fs.readFile(TOKEN_PATH, (err, token) => {
         if (err) {

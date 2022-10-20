@@ -1,6 +1,6 @@
 {
   "name": "@betomorrow/sync-wording",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Provide tool to retrieve app wording from Google Sheet and process it to generate i18n json files",
   "main": "lib/index.js",
   "bin": {
@@ -36,7 +36,7 @@
     "@types/node": "^12.12.14",
     "nodemon": "^2.0.1",
     "ts-node": "^8.5.4",
-    "typescript": "^3.7.2"
+    "typescript": "^4.8.4"
   },
   "files": [
     "lib/"

@@ -3,3 +3,4 @@ node_modules
 wording.xlsx
 test
 lib
+.google_access_token.json.bak
