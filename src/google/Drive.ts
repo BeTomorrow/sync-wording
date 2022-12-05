@@ -32,6 +32,25 @@ export class Drive {
     );
   }
 
+  async addLine(spreadsheetId: string, sheetName: string, key: string, ...values: string[]) {
+    const service = google.sheets({ version: "v4", auth: this.auth });
+    try {
+      const result = await service.spreadsheets.values.append({
+        spreadsheetId,
+        range: sheetName,
+        valueInputOption: "RAW",
+        requestBody: {
+          values: [[key, ...values]],
+        },
+      });
+
+      console.log(`${result.data.updates?.updatedCells} cells appended.`);
+      return result;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async exportAsXlsx(fileId: string, output: string, mimeType: string) {
     const dest = fs.createWriteStream(output);
     const res = await this.drive.files.export(
