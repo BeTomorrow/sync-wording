@@ -28,7 +28,7 @@
     "googleapis": "^108.0.0",
     "open": "^7.0.0",
     "path": "^0.12.7",
-    "xlsx": "^0.15.3"
+    "xlsx": "^0.17.0"
   },
   "devDependencies": {
     "@types/clear": "^0.1.0",
