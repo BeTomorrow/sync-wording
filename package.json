@@ -1,6 +1,6 @@
 {
   "name": "@betomorrow/sync-wording",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Provide tool to retrieve app wording from Google Sheet and process it to generate i18n json files",
   "main": "lib/index.js",
   "bin": {
@@ -28,7 +28,7 @@
     "googleapis": "^108.0.0",
     "open": "^7.0.0",
     "path": "^0.12.7",
-    "xlsx": "^0.15.3"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@types/clear": "^0.1.0",
