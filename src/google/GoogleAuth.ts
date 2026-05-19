@@ -71,11 +71,16 @@ export class GoogleAuth {
             reject("Error:" + query.error);
             req.destroy();
           } else {
-            let code: string;
+            let code: string | undefined;
             if (!Array.isArray(query.code)) {
               code = query.code;
             } else {
               code = query.code[0] ?? "";
+            }
+            if(!code) {
+              reject("No code found");
+              req.destroy();
+              return;
             }
             // Get access and refresh tokens (if access_type is offline)
             let { tokens } = await oAuth2Client.getToken(code);
@@ -140,11 +145,16 @@ export class GoogleAuth {
             // An error response e.g. error=access_denied
             reject("Error:" + query.error);
           } else {
-            let code: string;
+            let code: string | undefined;
             if (!Array.isArray(query.code)) {
               code = query.code;
             } else {
               code = query.code[0] ?? "";
+            }
+            if(!code) {
+              reject("No code found");
+              res.end("authentification failed");
+              return;
             }
             // Get access and refresh tokens (if access_type is offline)
             let { tokens } = await oAuth2Client.getToken(code);
