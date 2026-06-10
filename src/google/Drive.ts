@@ -3,9 +3,10 @@ import { google, drive_v3 } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import { LanguageConfig } from "../config/WordingConfig";
 
-interface KeyLocation {
-  sheetName: string;
-  rowIndex: number;
+export interface SheetWriteConfig {
+  keyColumn: string;
+  languages: LanguageConfig[];
+  sheetStartIndex: number;
 }
 
 export class Drive {
@@ -40,15 +41,16 @@ export class Drive {
   async addLines(
     spreadsheetId: string,
     sheetName: string,
-    lines: { key: string; values: string[] }[]
+    lines: { key: string; values: string[] }[],
+    writeConfig: SheetWriteConfig
   ) {
     const service = google.sheets({ version: "v4", auth: this.auth });
     const result = await service.spreadsheets.values.append({
       spreadsheetId,
-      range: sheetName,
+      range: `${sheetName}!${writeConfig.keyColumn}:${writeConfig.keyColumn}`,
       valueInputOption: "RAW",
       requestBody: {
-        values: lines.map(({ key, values }) => [key, ...values]),
+        values: lines.map((line) => this.buildAppendRow(line, writeConfig)),
       },
     });
 
@@ -60,39 +62,29 @@ export class Drive {
 
   async updateLines(
     spreadsheetId: string,
-    sheetNames: string[] | undefined,
-    keyColumn: string,
-    startRow: number,
-    languages: LanguageConfig[],
-    lines: { key: string; values: string[] }[]
+    sheetName: string,
+    lines: { key: string; values: string[] }[],
+    writeConfig: SheetWriteConfig
   ) {
     const service = google.sheets({ version: "v4", auth: this.auth });
-    const resolvedSheetNames = await this.resolveSheetNames(
+    const keyRows = await this.findKeyRows(
       service,
       spreadsheetId,
-      sheetNames
-    );
-    const keyLocations = await this.findKeyLocations(
-      service,
-      spreadsheetId,
-      resolvedSheetNames,
-      keyColumn,
-      startRow
+      sheetName,
+      writeConfig.keyColumn,
+      writeConfig.sheetStartIndex
     );
 
     const updates: { range: string; values: string[][] }[] = [];
     for (const line of lines) {
-      const location = keyLocations.get(line.key);
-      if (!location) {
+      const rowIndex = keyRows.get(line.key);
+      if (!rowIndex) {
         throw new Error(`Key not found: "${line.key}"`);
       }
 
-      languages.forEach((language, index) => {
-        updates.push({
-          range: `${location.sheetName}!${language.column}${location.rowIndex}`,
-          values: [[line.values[index]]],
-        });
-      });
+      updates.push(
+        ...this.buildTranslationUpdates(sheetName, rowIndex, line, writeConfig)
+      );
     }
 
     const result = await service.spreadsheets.values.batchUpdate({
@@ -109,66 +101,87 @@ export class Drive {
     return result;
   }
 
-  private async resolveSheetNames(
-    service: ReturnType<typeof google.sheets>,
-    spreadsheetId: string,
-    sheetNames: string[] | undefined
-  ): Promise<string[]> {
-    if (sheetNames && sheetNames.length > 0) {
-      return sheetNames;
+  private validateLine(
+    line: { key: string; values: string[] },
+    writeConfig: SheetWriteConfig
+  ) {
+    if (line.values.length !== writeConfig.languages.length) {
+      throw new Error(
+        `Invalid values for key "${line.key}": expected ${writeConfig.languages.length} translation(s), got ${line.values.length}`
+      );
     }
-
-    const meta = await service.spreadsheets.get({ spreadsheetId });
-    const titles = meta.data.sheets
-      ?.map((sheet) => sheet.properties?.title)
-      .filter((title): title is string => Boolean(title));
-
-    if (!titles?.length) {
-      throw new Error("No sheets found in spreadsheet");
-    }
-
-    return titles;
   }
 
-  private async findKeyLocations(
+  private buildAppendRow(
+    line: { key: string; values: string[] },
+    writeConfig: SheetWriteConfig
+  ): string[] {
+    this.validateLine(line, writeConfig);
+
+    const keyColumnIndex = columnToIndex(writeConfig.keyColumn);
+    const languageColumnIndexes = writeConfig.languages.map((language) =>
+      columnToIndex(language.column)
+    );
+    const maxColumnIndex = Math.max(keyColumnIndex, ...languageColumnIndexes);
+
+    const row = new Array<string>(maxColumnIndex - keyColumnIndex + 1).fill("");
+    row[0] = line.key;
+    writeConfig.languages.forEach((language, index) => {
+      const columnOffset = columnToIndex(language.column) - keyColumnIndex;
+      if (columnOffset < 0) {
+        throw new Error(
+          `Language column "${language.column}" must not be before keyColumn "${writeConfig.keyColumn}"`
+        );
+      }
+
+      row[columnOffset] = line.values[index];
+    });
+
+    return row;
+  }
+
+  private buildTranslationUpdates(
+    sheetName: string,
+    rowIndex: number,
+    line: { key: string; values: string[] },
+    writeConfig: SheetWriteConfig
+  ): { range: string; values: string[][] }[] {
+    this.validateLine(line, writeConfig);
+
+    return writeConfig.languages.map((language, index) => ({
+      range: `${sheetName}!${language.column}${rowIndex}`,
+      values: [[line.values[index]]],
+    }));
+  }
+
+  private async findKeyRows(
     service: ReturnType<typeof google.sheets>,
     spreadsheetId: string,
-    sheetNames: string[],
+    sheetName: string,
     keyColumn: string,
     startRow: number
-  ): Promise<Map<string, KeyLocation>> {
-    const keyLocations = new Map<string, KeyLocation>();
+  ): Promise<Map<string, number>> {
+    const response = await service.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${sheetName}!${keyColumn}${startRow}:${keyColumn}`,
+    });
 
-    for (const sheetName of sheetNames) {
-      const response = await service.spreadsheets.values.get({
-        spreadsheetId,
-        range: `${sheetName}!${keyColumn}${startRow}:${keyColumn}`,
-      });
+    const keyRows = new Map<string, number>();
+    const keys = response.data.values ?? [];
+    keys.forEach((row, index) => {
+      const key = row[0];
+      if (!key) {
+        return;
+      }
 
-      const keys = response.data.values ?? [];
-      keys.forEach((row, index) => {
-        const key = row[0];
-        if (!key) {
-          return;
-        }
+      if (keyRows.has(key)) {
+        throw new Error(`Duplicate key "${key}" found in sheet "${sheetName}"`);
+      }
 
-        const location: KeyLocation = {
-          sheetName,
-          rowIndex: startRow + index,
-        };
+      keyRows.set(key, startRow + index);
+    });
 
-        const existing = keyLocations.get(key);
-        if (existing) {
-          throw new Error(
-            `Duplicate key "${key}" found in sheets "${existing.sheetName}" and "${sheetName}"`
-          );
-        }
-
-        keyLocations.set(key, location);
-      });
-    }
-
-    return keyLocations;
+    return keyRows;
   }
 
   async exportAsXlsx(fileId: string, output: string, mimeType: string) {
@@ -188,4 +201,12 @@ export class Drive {
         .on("finish", resolve);
     });
   }
+}
+
+function columnToIndex(column: string): number {
+  let index = 0;
+  for (const char of column.toUpperCase()) {
+    index = index * 26 + (char.charCodeAt(0) - 64);
+  }
+  return index - 1;
 }

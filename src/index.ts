@@ -2,6 +2,7 @@
 
 import colors from "colors/safe";
 import { program } from "commander";
+import { WordingConfig } from "./config/WordingConfig";
 import { loadConfiguration } from "./config/WordingConfigLoader";
 import { AngularJsonWordingExporter } from "./exporters/AngularJsonWordingExporter";
 import { FlatJsonWordingExporter } from "./exporters/FlatJsonWordingExportter";
@@ -23,6 +24,10 @@ program
   .option(
     "--set <key> <values...>",
     "update wording line(s) in remote Google Sheet by key (key followed by one value per language; repeat the pattern for multiple lines)",
+  )
+  .option(
+    "--sheet <name>",
+    "target sheet name for --add / --set (default: first entry in sheetNames)",
   )
   .option("--config <config>", "wording config path", "wording_config.json")
   .option("--upgrade", "upgrade wording from remote Google Sheet")
@@ -59,6 +64,14 @@ function printReport(language: string, result: WordingResult): void {
 
 const options = program.opts();
 
+function sheetWriteConfig(config: WordingConfig) {
+  return {
+    keyColumn: config.keyColumn,
+    languages: config.languages,
+    sheetStartIndex: config.sheetStartIndex,
+  };
+}
+
 const scopes = [
   "https://www.googleapis.com/auth/drive",
   "https://www.googleapis.com/auth/drive.file",
@@ -72,20 +85,26 @@ loadConfiguration(options.config).then(async (config) => {
 
   if (options.add) {
     const lines = parseWordingLines(options.add, config.languages.length);
+    const sheetName = options.sheet ?? config.sheetNames[0];
+
     const auth = await new GoogleAuth().authorize(config.credentials, scopes);
-    await new Drive(auth).addLines(config.sheetId, config.sheetNames[0], lines);
+    await new Drive(auth).addLines(
+      config.sheetId,
+      sheetName,
+      lines,
+      sheetWriteConfig(config),
+    );
   }
 
   if (options.set) {
     const lines = parseWordingLines(options.set, config.languages.length);
+    const sheetName = options.sheet ?? config.sheetNames[0];
     const auth = await new GoogleAuth().authorize(config.credentials, scopes);
     await new Drive(auth).updateLines(
       config.sheetId,
-      config.sheetNames,
-      config.keyColumn,
-      config.sheetStartIndex,
-      config.languages,
+      sheetName,
       lines,
+      sheetWriteConfig(config),
     );
   }
 
