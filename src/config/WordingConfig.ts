@@ -1,14 +1,19 @@
 export interface Validation {
-  column : string;
+  column: string;
   expected: string;
 }
 export class LanguageConfig {
   name: string;
   column: string;
   output: string;
-  validation : Validation | null
+  validation: Validation | null;
 
-  constructor(name: string, config: any, defaultOutputDir: string, validation : Validation | null) {
+  constructor(
+    name: string,
+    config: any,
+    defaultOutputDir: string,
+    validation: Validation | null,
+  ) {
     this.name = name;
     this.column = config.column;
     if (config.output) {
@@ -39,13 +44,13 @@ export class WordingConfig {
   languages: LanguageConfig[];
   format: string;
   ignoreEmptyKeys: boolean;
-  validation : Validation | null;
+  validation: Validation | null;
 
   constructor(jsonConfig: any) {
     this.wording_file = this.getOrDefault(
       jsonConfig,
       "wording_file",
-      "./wording.xlsx"
+      "./wording.xlsx",
     );
 
     this.credentials = this.getOrDefault(jsonConfig, "credentials", "");
@@ -60,26 +65,34 @@ export class WordingConfig {
     this.output_dir = this.getOrDefault(
       jsonConfig,
       "output_dir",
-      "./src/assets/strings/"
+      "./src/assets/strings/",
     );
 
     this.languages = [];
 
     this.format = this.getOrDefault(jsonConfig, "format", "json");
 
-    this.ignoreEmptyKeys = this.getOrDefault(jsonConfig, "ignoreEmptyKeys", false);
+    this.ignoreEmptyKeys = this.getOrDefault(
+      jsonConfig,
+      "ignoreEmptyKeys",
+      false,
+    );
 
-    this.validation = this.getOrDefault(jsonConfig, "validation", null)
+    this.validation = this.getOrDefault(jsonConfig, "validation", null);
 
     for (const language in jsonConfig.languages) {
       if (jsonConfig.languages.hasOwnProperty(language)) {
         const element = jsonConfig.languages[language];
         this.languages.push(
-          new LanguageConfig(language, element, this.output_dir, this.validation)
+          new LanguageConfig(
+            language,
+            element,
+            this.output_dir,
+            this.validation,
+          ),
         );
       }
     }
-
   }
 
   private getOrDefault<T>(source: any, key: string, defaultValue: T): T {
