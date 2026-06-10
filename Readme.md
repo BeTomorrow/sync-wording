@@ -36,7 +36,9 @@ You can find a sample sheet [here](https://docs.google.com/spreadsheets/d/18Zf_X
 ```json
 {
   "scripts": {
-    "upgrade-wording": "sync-wording --upgrade"
+    "upgrade-wording": "sync-wording --upgrade",
+    "add-wording": "sync-wording --add",
+    "set-wording":"sync-wording --set"
   }
 }
 ```
@@ -93,12 +95,64 @@ Now the tool will warn you when you update wording containing invalid translatio
 
 ## Options
 
-This tools support 3 options
+This tools support the following options
 
 - **`--config`** : Configuration path
 - **`--upgrade`** : Export sheet in local xlsx file that you can commit for later edit. It prevent risks to have unwanted wording changes when you fix bugs. And then update wording
 - **`--update`** : Update wording files from local xlsx file
 - **`--invalid`** : (error|warning) exist with error when invalid translations found or just warn
+- **`--add`** : Add one or more wording lines to the remote Google Sheet. Each line is a key followed by one translation per configured language (same order as `languages` in config). To add multiple lines in a single command, repeat the pattern (key + translations).
+- **`--set`** : Update one or more existing wording lines in the remote Google Sheet by key. Same argument format as `--add`. The key must already exist in the target sheet.
+- **`--sheet`** : Sheet tab name for `--add` / `--set` (default: first entry in `sheetNames`).
+
+### Add wording lines
+
+Use `--add` to push new keys and translations directly to the Google Sheet. By default, the first sheet in `sheetNames` is used; pass `--sheet` to target a specific tab.
+
+Single line (2 languages: fr, en — order matches `languages` in config):
+
+```bash
+sync-wording --add user.email_title "E-mail" "Email"
+```
+
+Target a specific sheet:
+
+```bash
+sync-wording --sheet MyApp --add user.email_title "E-mail" "Email"
+```
+
+Multiple lines at once — repeat `key + translations` for each language:
+
+```bash
+sync-wording --add \
+  user.email_title "E-mail" "Email" \
+  user.phone_title "Téléphone" "Phone" \
+  user.address_title "Adresse" "Address"
+```
+
+Keys are written to `keyColumn` and each translation to its language `column` from the config (e.g. key in `A`, `en` in `C`, `fr` in `D`).
+
+The number of values after each key must match the number of languages defined in `wording_config.json`. With 2 languages, each line requires 3 arguments (1 key + 2 translations).
+
+### Update wording lines
+
+Use `--set` to update translations for existing keys in the sheet selected via `--sheet` or the first entry in `sheetNames`.
+
+Single line:
+
+```bash
+sync-wording --set user.email_title "Email address" "Adresse e-mail"
+```
+
+Multiple lines at once:
+
+```bash
+sync-wording --set \
+  user.email_title "Email address" "Adresse e-mail" \
+  user.phone_title "Phone number" "Numéro de téléphone"
+```
+
+If a key is not found, the command fails with an error. If the same key exists in multiple sheets, the command also fails to avoid ambiguous updates.
 
 ## Complete Configuration
 
