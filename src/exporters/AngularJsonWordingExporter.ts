@@ -26,7 +26,6 @@ export class AngularJsonWordingExporter implements WordingExporter {
         if (err) {
           reject(err);
         } else {
-          console.log(`${output} updated`);
           resolve();
         }
       });

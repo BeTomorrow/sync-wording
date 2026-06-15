@@ -40,7 +40,6 @@ export class NestedJsonWordingExporter implements WordingExporter {
         if (err) {
           reject(err);
         } else {
-          console.log(`${output} updated`);
           resolve();
         }
       });
