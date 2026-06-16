@@ -1,16 +1,26 @@
+import { ConfigError } from "../errors";
+
 export interface Validation {
-  column : string;
+  column: string;
   expected: string;
 }
 export class LanguageConfig {
   name: string;
   column: string;
   output: string;
-  validation : Validation | null
+  validation: Validation | null;
 
-  constructor(name: string, config: any, defaultOutputDir: string, validation : Validation | null) {
+  constructor(
+    name: string,
+    config: any,
+    defaultOutputDir: string,
+    validation: Validation | null,
+  ) {
     this.name = name;
     this.column = config.column;
+    if (!this.column) {
+      throw new ConfigError(`Language "${name}" has no "column" defined`);
+    }
     if (config.output) {
       this.output = config.output;
     } else {
@@ -28,64 +38,122 @@ export class LanguageConfig {
   }
 }
 
+/**
+ * Reads `key` from the first source that defines it, so a target value
+ * overrides a document-level value, which overrides the built-in default.
+ */
+function getOrDefault<T>(sources: any[], key: string, defaultValue: T): T {
+  for (const source of sources) {
+    if (source && Object.prototype.hasOwnProperty.call(source, key)) {
+      return source[key] as T;
+    }
+  }
+  return defaultValue;
+}
+
+export class TargetConfig {
+  name: string;
+  sheetNames: string[] | undefined;
+  sheetStartIndex: number;
+  keyColumn: string;
+  output_dir: string;
+  format: string;
+  ignoreEmptyKeys: boolean;
+  validation: Validation | null;
+  languages: LanguageConfig[];
+
+  constructor(name: string, targetJson: any, documentJson: any) {
+    const sources = [targetJson, documentJson];
+
+    this.name = name;
+    this.sheetNames = getOrDefault<string[] | undefined>(
+      sources,
+      "sheetNames",
+      undefined,
+    );
+    this.sheetStartIndex = getOrDefault(sources, "sheetStartIndex", 2);
+    this.keyColumn = getOrDefault(sources, "keyColumn", "A");
+    this.output_dir = getOrDefault(
+      sources,
+      "output_dir",
+      "./src/assets/strings/",
+    );
+    this.format = getOrDefault(sources, "format", "json");
+    this.ignoreEmptyKeys = getOrDefault(sources, "ignoreEmptyKeys", false);
+    this.validation = getOrDefault<Validation | null>(
+      sources,
+      "validation",
+      null,
+    );
+
+    const languagesJson = getOrDefault<any>(sources, "languages", null);
+    if (!languagesJson || Object.keys(languagesJson).length === 0) {
+      throw new ConfigError(`Target "${name}" has no "languages" defined`);
+    }
+
+    this.languages = [];
+    for (const language in languagesJson) {
+      if (languagesJson.hasOwnProperty(language)) {
+        this.languages.push(
+          new LanguageConfig(
+            language,
+            languagesJson[language],
+            this.output_dir,
+            this.validation,
+          ),
+        );
+      }
+    }
+  }
+}
+
 export class WordingConfig {
   wording_file: string;
   credentials: string;
   sheetId: string;
-  sheetNames: string[];
-  sheetStartIndex: number;
-  keyColumn: string;
-  output_dir: string;
-  languages: LanguageConfig[];
-  format: string;
-  ignoreEmptyKeys: boolean;
-  validation : Validation | null;
+  targets: TargetConfig[];
 
   constructor(jsonConfig: any) {
-    this.wording_file = this.getOrDefault(
-      jsonConfig,
+    this.wording_file = getOrDefault(
+      [jsonConfig],
       "wording_file",
-      "./wording.xlsx"
+      "./wording.xlsx",
     );
-
-    this.credentials = this.getOrDefault(jsonConfig, "credentials", "");
-
+    this.credentials = getOrDefault([jsonConfig], "credentials", "");
     this.sheetId = jsonConfig.sheetId;
-    this.sheetNames = jsonConfig.sheetNames;
-
-    this.sheetStartIndex = this.getOrDefault(jsonConfig, "sheetStartIndex", 2);
-
-    this.keyColumn = this.getOrDefault(jsonConfig, "keyColumn", "A");
-
-    this.output_dir = this.getOrDefault(
-      jsonConfig,
-      "output_dir",
-      "./src/assets/strings/"
-    );
-
-    this.languages = [];
-
-    this.format = this.getOrDefault(jsonConfig, "format", "json");
-
-    this.ignoreEmptyKeys = this.getOrDefault(jsonConfig, "ignoreEmptyKeys", false);
-
-    this.validation = this.getOrDefault(jsonConfig, "validation", null)
-
-    for (const language in jsonConfig.languages) {
-      if (jsonConfig.languages.hasOwnProperty(language)) {
-        const element = jsonConfig.languages[language];
-        this.languages.push(
-          new LanguageConfig(language, element, this.output_dir, this.validation)
-        );
-      }
+    if (!this.sheetId) {
+      throw new ConfigError(`"sheetId" is required`);
     }
 
+    if (jsonConfig.targets) {
+      const names = Object.keys(jsonConfig.targets);
+      if (names.length === 0) {
+        throw new ConfigError(`"targets" is defined but empty`);
+      }
+      this.targets = names.map(
+        (name) => new TargetConfig(name, jsonConfig.targets[name], jsonConfig),
+      );
+    } else {
+      // Flat configuration (legacy shape): a single implicit target.
+      this.targets = [new TargetConfig("default", jsonConfig, {})];
+    }
   }
 
-  private getOrDefault<T>(source: any, key: string, defaultValue: T): T {
-    if (source.hasOwnProperty(key)) {
-      return source[key] as T;
+  selectTargets(name: string | undefined): TargetConfig[] {
+    if (!name) {
+      return this.targets;
     }
-    return defaultValue;
+    const target = this.targets.find((t) => t.name === name);
+    if (!target) {
+      const available = this.targets.map((t) => t.name).join(", ");
+      throw new ConfigError(
+        `Unknown target "${name}". Available targets: ${available}`,
+      );
+    }
+    return [target];
+  }
+
+  hasMultipleTargets(): boolean {
+    return this.targets.length > 1;
   }
 }

@@ -1,5 +1,7 @@
+import fs from "fs";
 import xlsx, { WorkBook, WorkSheet } from "xlsx";
-import { LanguageConfig, WordingConfig } from "./config/WordingConfig";
+import { LanguageConfig, TargetConfig } from "./config/WordingConfig";
+import { ConfigError } from "./errors";
 
 interface Entry {
   key: string;
@@ -7,73 +9,96 @@ interface Entry {
 }
 
 export class WordingResult {
-
-  public readonly hasInvalidKeys : boolean;
-  public readonly invalidKeys : string[];
+  public readonly hasInvalidKeys: boolean;
+  public readonly invalidKeys: string[];
 
   constructor(
-    public wordings : Map<string, string>,
-    public validations : Map<string, boolean>
+    public wordings: Map<string, string>,
+    public validations: Map<string, boolean>,
   ) {
-    const invalidKeys : string[] = []
+    const invalidKeys: string[] = [];
     this.validations.forEach((value, key) => {
       if (!value) {
-        invalidKeys.push(key)
+        invalidKeys.push(key);
       }
     });
     this.invalidKeys = invalidKeys;
-    this.hasInvalidKeys = invalidKeys.length > 0
+    this.hasInvalidKeys = invalidKeys.length > 0;
   }
 }
 
 export class WordingLoader {
-
   private workbook: WorkBook;
-  private sheetNames: string[];
 
-  constructor(
-    private config : WordingConfig,
-  ) {
-    this.workbook = xlsx.readFile(this.config.wording_file);
-    if (this.config.sheetNames && this.config.sheetNames.length > 0) {
-      this.sheetNames = this.config.sheetNames;
-    } else {
-      this.sheetNames = this.workbook.SheetNames;
+  constructor(wordingFile: string) {
+    if (!fs.existsSync(wordingFile)) {
+      throw new ConfigError(
+        `Wording file "${wordingFile}" not found. Run "npx sync-wording --upgrade" to download it from Google Sheet.`,
+      );
     }
+    this.workbook = xlsx.readFile(wordingFile);
   }
 
-  loadWording(language: LanguageConfig, ignoreEmptyKeys: boolean): WordingResult {
+  resolveSheetNames(target: TargetConfig): string[] {
+    if (target.sheetNames && target.sheetNames.length > 0) {
+      const missing = target.sheetNames.filter(
+        (name) => !this.workbook.Sheets[name],
+      );
+      if (missing.length > 0) {
+        throw new ConfigError(
+          `Sheet(s) not found for target "${target.name}": ${missing.join(", ")}. ` +
+            `Available sheets: ${this.workbook.SheetNames.join(", ")}`,
+        );
+      }
+      return target.sheetNames;
+    }
+    return this.workbook.SheetNames;
+  }
+
+  loadWording(target: TargetConfig, language: LanguageConfig): WordingResult {
     const wordings = new Map<string, string>();
     const validations = new Map<string, boolean>();
-    for (const sheetName of this.sheetNames) {
+    for (const sheetName of this.resolveSheetNames(target)) {
       const sheet = this.workbook.Sheets[sheetName];
-      this.addWording(sheet, language, wordings, validations, ignoreEmptyKeys);
+      this.addWording(sheet, target, language, wordings, validations);
     }
     return new WordingResult(wordings, validations);
   }
 
   private addWording(
     sheet: WorkSheet,
+    target: TargetConfig,
     language: LanguageConfig,
     wordings: Map<string, string>,
     validations: Map<string, boolean>,
-    ignoreEmptyKeys: boolean
   ) {
-    let row: Entry | undefined;
-    let rowIndex = this.config.sheetStartIndex;
-    while ((row = this.readRow(sheet, this.config.keyColumn, language.column, rowIndex)) !== undefined) {
-      
-      if (!ignoreEmptyKeys) {
+    // Scan the whole used range: an empty spacer row must not silently
+    // truncate everything below it.
+    const range = xlsx.utils.decode_range(sheet["!ref"] ?? "A1:A1");
+    const lastRow = range.e.r + 1;
+
+    for (
+      let rowIndex = target.sheetStartIndex;
+      rowIndex <= lastRow;
+      rowIndex++
+    ) {
+      const row = this.readRow(sheet, target.keyColumn, language.column, rowIndex);
+      if (row === undefined) {
+        continue;
+      }
+
+      if (!target.ignoreEmptyKeys) {
         wordings.set(row.key, row.value);
       } else if (row.value != undefined && row.value.length > 0) {
         wordings.set(row.key, row.value);
       }
 
       if (language.validation && language.validation?.column) {
-        const isValid = this.readRow(sheet, this.config.keyColumn, language.validation?.column, rowIndex)?.value === language.validation.expected;
+        const isValid =
+          this.readRow(sheet, target.keyColumn, language.validation?.column, rowIndex)
+            ?.value === language.validation.expected;
         validations.set(row.key, isValid);
       }
-      rowIndex++;
     }
   }
 
@@ -81,7 +106,7 @@ export class WordingLoader {
     sheet: WorkSheet,
     keyColumn: string,
     column: string,
-    rowIndex: number
+    rowIndex: number,
   ): Entry | undefined {
     const key = sheet[`${keyColumn}${rowIndex}`];
     const value = sheet[`${column}${rowIndex}`];
@@ -90,7 +115,7 @@ export class WordingLoader {
     }
     return {
       key: key.v,
-      value: value ? value.v : ""
+      value: value ? value.v : "",
     };
   }
 }
